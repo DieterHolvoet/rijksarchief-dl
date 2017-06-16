@@ -15,7 +15,12 @@
   },
   "dependencies": {
     "commander": "^2.9.0",
-    "global": "^4.3.2"
+    "fetch-cookie": "^0.6.0",
+    "form-data": "^2.2.0",
+    "global": "^4.3.2",
+    "libxmljs": "^0.18.4",
+    "mosaic-image-stream": "^1.0.2",
+    "node-fetch": "^1.7.1"
   },
   "devDependencies": {
     "eslint": "^4.0.0",
