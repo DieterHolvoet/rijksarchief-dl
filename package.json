@@ -1,0 +1,27 @@
+{
+  "name": "rijksarchief-dl",
+  "version": "1.0.0",
+  "description": "A command line tool to download images from the Belgian National Archives",
+  "main": "main.js",
+  "repository": "git@github.com:DieterHolvoet/rijksarchief-dl.git",
+  "author": "Dieter Holvoet <dieter.holvoet@gmail.com>",
+  "license": "MIT",
+  "preferGlobal": true,
+  "engines": {
+    "node": ">=4.0.0"
+  },
+  "bin": {
+    "rijksarchief-dl": "main.js"
+  },
+  "dependencies": {
+    "commander": "^2.9.0",
+    "global": "^4.3.2"
+  },
+  "devDependencies": {
+    "eslint": "^4.0.0",
+    "eslint-plugin-node": "^5.0.0"
+  },
+  "scripts": {
+    "init": "npm link && npm install . --global"
+  }
+}
