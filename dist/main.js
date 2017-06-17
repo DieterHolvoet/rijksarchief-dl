@@ -20,9 +20,11 @@ if (_commander2.default.url) {
     doc.fetchMeta().then(function () {
         var selectedLayer = doc.layers[doc.layers.length - 1];
         console.log(JSON.stringify(selectedLayer));
-        return doc.buildTileArrays(selectedLayer);
-    }).then(function (streams) {
+        return doc.mosaics(selectedLayer);
+    }
+    /*.then((streams) => {
         doc.stitchTiles(doc.layers[doc.layers.length - 1], streams);
-    });
+    });*/
+    );
 }
 //# sourceMappingURL=main.js.map

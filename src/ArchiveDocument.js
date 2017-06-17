@@ -3,8 +3,11 @@ import libxmljs from 'libxmljs';
 import JPEGDecoder from 'jpg-stream/decoder';
 import JPEGEncoder from 'jpg-stream/encoder';
 import Mosaic from 'mosaic-image-stream';
+import mergeImages from 'merge-images';
+import Canvas from 'canvas';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as base64 from 'file-base64';
 
 class ArchiveDocument {
     constructor(url) {
@@ -41,6 +44,41 @@ class ArchiveDocument {
         return `http://search.arch.be/imageserver/getpic.php?${this.fif1}/${this.fif3}/${this.fif5}/${this.fif7}.jp2&${tile}`;
     }
 
+    async buildImage(layer) {
+        let pos = layer.starttile;
+        const tiles = [];
+
+        for (let row = 0; row < 2/*layer.rows - 1*/; row++) {
+            for (let col = 0; col < layer.cols; col++) {
+                const url = this.tileUrl(pos);
+
+                // Fetch image
+                const response = await fetch(url);
+                const buffer = await response.buffer();
+
+                tiles.push({
+                    x: row * this.tilewidth,
+                    y: col * this.tileheight,
+                    src: buffer
+                });
+
+                fs.writeFile(path.join(__dirname, `${row}-${col}-image.jpg`), buffer, "binary", function(err) { console.log(err)});
+
+                pos++;
+            }
+        }
+
+        // Build and save image
+        base64.decode(
+            await mergeImages(tiles, { Canvas }),
+            path.join(__dirname, 'image.jpg'),
+            (err, output) => {
+                console.log('success');
+                console.log(err, output);
+            }
+        );
+    }
+
     async buildTileArrays(layer) {
         const streams = [];
         let pos = layer.starttile;
@@ -53,9 +91,7 @@ class ArchiveDocument {
                 const res = await fetch(url);
                 const stream = res.body
                     .on('error', err => console.error)
-                    .pipe(new JPEGDecoder())
-                    .on('meta', meta => console.log('Meta: '+JSON.stringify(meta)))
-                    .on('finish', meta => console.log('Finish: '+JSON.stringify(meta)));
+                    .pipe(new JPEGDecoder());
 
                 streams[row].push(stream);
                 pos++;
@@ -67,11 +103,32 @@ class ArchiveDocument {
 
     stitchTiles(layer, streams) {
         Mosaic(streams, layer.rows * this.tileheight)
-            .on('error', console.error)
+            /*.on('error', console.error)
             .on('finish', () => console.log('hallo'))
+            .on('close', () => console.log('hallos'))*/
             .pipe(new JPEGEncoder())
             .pipe(fs.createWriteStream(path.join(__dirname, 'testje.jpg')));
-        console.log(`Written to ${path.join(__dirname, 'testje.jpg')}`);
+        // console.log(`Written to ${path.join(__dirname, 'testje.jpg')}`);
+    }
+
+    mosaics(layer) {
+        var request = require('request')
+        const size = [layer.rows, layer.cols];
+        var factories = Array(size[0]).fill().map((v, i) => {
+            var count = 0
+            return (cb) => {
+                var url = this.tileUrl(layer.starttile + (count * size[0]) + i);
+                // console.log(count+', '+i+', '+size[1]);
+                console.log(url);
+                if (++count > size[1]) return cb(null, null)
+                cb(null, request(url).pipe(new JPEGDecoder()))
+            }
+        })
+
+        Mosaic(factories, size[1] * 150)
+            .on('error', console.error)
+            .pipe(new JPEGEncoder())
+            .pipe(fs.createWriteStream(path.join(__dirname, 'testjse.jpg')))
     }
 
     async fetchMeta() {

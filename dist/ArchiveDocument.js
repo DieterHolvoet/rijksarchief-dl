@@ -26,6 +26,14 @@ var _mosaicImageStream = require('mosaic-image-stream');
 
 var _mosaicImageStream2 = _interopRequireDefault(_mosaicImageStream);
 
+var _mergeImages = require('merge-images');
+
+var _mergeImages2 = _interopRequireDefault(_mergeImages);
+
+var _canvas = require('canvas');
+
+var _canvas2 = _interopRequireDefault(_canvas);
+
 var _fs = require('fs');
 
 var fs = _interopRequireWildcard(_fs);
@@ -33,6 +41,10 @@ var fs = _interopRequireWildcard(_fs);
 var _path = require('path');
 
 var path = _interopRequireWildcard(_path);
+
+var _fileBase = require('file-base64');
+
+var base64 = _interopRequireWildcard(_fileBase);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -73,13 +85,108 @@ var ArchiveDocument = function () {
             return 'http://search.arch.be/imageserver/getpic.php?' + this.fif1 + '/' + this.fif3 + '/' + this.fif5 + '/' + this.fif7 + '.jp2&' + tile;
         }
     }, {
-        key: 'buildTileArrays',
+        key: 'buildImage',
         value: function () {
             var _ref = _asyncToGenerator(regeneratorRuntime.mark(function _callee(layer) {
-                var streams, pos, row, col, url, res, stream;
+                var pos, tiles, row, col, url, response, buffer;
                 return regeneratorRuntime.wrap(function _callee$(_context) {
                     while (1) {
                         switch (_context.prev = _context.next) {
+                            case 0:
+                                pos = layer.starttile;
+                                tiles = [];
+                                row = 0;
+
+                            case 3:
+                                if (!(row < 2 /*layer.rows - 1*/)) {
+                                    _context.next = 22;
+                                    break;
+                                }
+
+                                col = 0;
+
+                            case 5:
+                                if (!(col < layer.cols)) {
+                                    _context.next = 19;
+                                    break;
+                                }
+
+                                url = this.tileUrl(pos);
+
+                                // Fetch image
+
+                                _context.next = 9;
+                                return (0, _nodeFetch2.default)(url);
+
+                            case 9:
+                                response = _context.sent;
+                                _context.next = 12;
+                                return response.buffer();
+
+                            case 12:
+                                buffer = _context.sent;
+
+
+                                tiles.push({
+                                    x: row * this.tilewidth,
+                                    y: col * this.tileheight,
+                                    src: buffer
+                                });
+
+                                fs.writeFile(path.join(__dirname, row + '-' + col + '-image.jpg'), buffer, "binary", function (err) {
+                                    console.log(err);
+                                });
+
+                                pos++;
+
+                            case 16:
+                                col++;
+                                _context.next = 5;
+                                break;
+
+                            case 19:
+                                row++;
+                                _context.next = 3;
+                                break;
+
+                            case 22:
+                                _context.t0 = base64;
+                                _context.next = 25;
+                                return (0, _mergeImages2.default)(tiles, { Canvas: _canvas2.default });
+
+                            case 25:
+                                _context.t1 = _context.sent;
+                                _context.t2 = path.join(__dirname, 'image.jpg');
+
+                                _context.t3 = function (err, output) {
+                                    console.log('success');
+                                    console.log(err, output);
+                                };
+
+                                _context.t0.decode.call(_context.t0, _context.t1, _context.t2, _context.t3);
+
+                            case 29:
+                            case 'end':
+                                return _context.stop();
+                        }
+                    }
+                }, _callee, this);
+            }));
+
+            function buildImage(_x) {
+                return _ref.apply(this, arguments);
+            }
+
+            return buildImage;
+        }()
+    }, {
+        key: 'buildTileArrays',
+        value: function () {
+            var _ref2 = _asyncToGenerator(regeneratorRuntime.mark(function _callee2(layer) {
+                var streams, pos, row, col, url, res, stream;
+                return regeneratorRuntime.wrap(function _callee2$(_context2) {
+                    while (1) {
+                        switch (_context2.prev = _context2.next) {
                             case 0:
                                 streams = [];
                                 pos = layer.starttile;
@@ -87,7 +194,7 @@ var ArchiveDocument = function () {
 
                             case 3:
                                 if (!(row < 2 /*layer.rows - 1*/)) {
-                                    _context.next = 20;
+                                    _context2.next = 20;
                                     break;
                                 }
 
@@ -97,23 +204,19 @@ var ArchiveDocument = function () {
 
                             case 6:
                                 if (!(col < layer.cols)) {
-                                    _context.next = 17;
+                                    _context2.next = 17;
                                     break;
                                 }
 
                                 url = this.tileUrl(pos);
-                                _context.next = 10;
+                                _context2.next = 10;
                                 return (0, _nodeFetch2.default)(url);
 
                             case 10:
-                                res = _context.sent;
+                                res = _context2.sent;
                                 stream = res.body.on('error', function (err) {
                                     return console.error;
-                                }).pipe(new _decoder2.default()).on('meta', function (meta) {
-                                    return console.log('Meta: ' + JSON.stringify(meta));
-                                }).on('finish', function (meta) {
-                                    return console.log('Finish: ' + JSON.stringify(meta));
-                                });
+                                }).pipe(new _decoder2.default());
 
 
                                 streams[row].push(stream);
@@ -121,27 +224,27 @@ var ArchiveDocument = function () {
 
                             case 14:
                                 col++;
-                                _context.next = 6;
+                                _context2.next = 6;
                                 break;
 
                             case 17:
                                 row++;
-                                _context.next = 3;
+                                _context2.next = 3;
                                 break;
 
                             case 20:
-                                return _context.abrupt('return', streams);
+                                return _context2.abrupt('return', streams);
 
                             case 21:
                             case 'end':
-                                return _context.stop();
+                                return _context2.stop();
                         }
                     }
-                }, _callee, this);
+                }, _callee2, this);
             }));
 
-            function buildTileArrays(_x) {
-                return _ref.apply(this, arguments);
+            function buildTileArrays(_x2) {
+                return _ref2.apply(this, arguments);
             }
 
             return buildTileArrays;
@@ -149,30 +252,52 @@ var ArchiveDocument = function () {
     }, {
         key: 'stitchTiles',
         value: function stitchTiles(layer, streams) {
-            (0, _mosaicImageStream2.default)(streams, layer.rows * this.tileheight).on('error', console.error).on('finish', function () {
-                return console.log('hallo');
-            }).pipe(new _encoder2.default()).pipe(fs.createWriteStream(path.join(__dirname, 'testje.jpg')));
-            console.log('Written to ' + path.join(__dirname, 'testje.jpg'));
+            (0, _mosaicImageStream2.default)(streams, layer.rows * this.tileheight
+            /*.on('error', console.error)
+            .on('finish', () => console.log('hallo'))
+            .on('close', () => console.log('hallos'))*/
+            ).pipe(new _encoder2.default()).pipe(fs.createWriteStream(path.join(__dirname, 'testje.jpg')));
+            // console.log(`Written to ${path.join(__dirname, 'testje.jpg')}`);
+        }
+    }, {
+        key: 'mosaics',
+        value: function mosaics(layer) {
+            var _this = this;
+
+            var request = require('request');
+            var size = [layer.rows, layer.cols];
+            var factories = Array(size[0]).fill().map(function (v, i) {
+                var count = 0;
+                return function (cb) {
+                    var url = _this.tileUrl(layer.starttile + count * size[0] + i);
+                    // console.log(count+', '+i+', '+size[1]);
+                    console.log(url);
+                    if (++count > size[1]) return cb(null, null);
+                    cb(null, request(url).pipe(new _decoder2.default()));
+                };
+            });
+
+            (0, _mosaicImageStream2.default)(factories, size[1] * 150).on('error', console.error).pipe(new _encoder2.default()).pipe(fs.createWriteStream(path.join(__dirname, 'testjse.jpg')));
         }
     }, {
         key: 'fetchMeta',
         value: function () {
-            var _ref2 = _asyncToGenerator(regeneratorRuntime.mark(function _callee2() {
+            var _ref3 = _asyncToGenerator(regeneratorRuntime.mark(function _callee3() {
                 var result, body, xmlDoc;
-                return regeneratorRuntime.wrap(function _callee2$(_context2) {
+                return regeneratorRuntime.wrap(function _callee3$(_context3) {
                     while (1) {
-                        switch (_context2.prev = _context2.next) {
+                        switch (_context3.prev = _context3.next) {
                             case 0:
-                                _context2.next = 2;
+                                _context3.next = 2;
                                 return (0, _nodeFetch2.default)(this.metaUrl);
 
                             case 2:
-                                result = _context2.sent;
-                                _context2.next = 5;
+                                result = _context3.sent;
+                                _context3.next = 5;
                                 return result.text();
 
                             case 5:
-                                body = _context2.sent;
+                                body = _context3.sent;
                                 xmlDoc = _libxmljs2.default.parseXml(body);
 
                                 // Extract tile dimensions
@@ -191,14 +316,14 @@ var ArchiveDocument = function () {
 
                             case 10:
                             case 'end':
-                                return _context2.stop();
+                                return _context3.stop();
                         }
                     }
-                }, _callee2, this);
+                }, _callee3, this);
             }));
 
             function fetchMeta() {
-                return _ref2.apply(this, arguments);
+                return _ref3.apply(this, arguments);
             }
 
             return fetchMeta;

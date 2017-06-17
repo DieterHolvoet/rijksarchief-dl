@@ -14,9 +14,9 @@ if (commander.url) {
         .then(() => {
             const selectedLayer = doc.layers[doc.layers.length - 1];
             console.log(JSON.stringify(selectedLayer));
-            return doc.buildTileArrays(selectedLayer);
+            return doc.mosaics(selectedLayer);
         })
-        .then((streams) => {
+        /*.then((streams) => {
             doc.stitchTiles(doc.layers[doc.layers.length - 1], streams);
-        });
+        });*/
 }
