@@ -1,7 +1,9 @@
 {
-  "plugins": ["node"],
-  "extends": ["eslint:recommended", "plugin:node/recommended"],
+  "env": {
+    "node": true
+  },
+  "parser": "babel-eslint",
   "rules": {
-    "node/exports-style": ["error", "module.exports"]
+    "strict": 0
   }
 }
