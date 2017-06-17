@@ -13,10 +13,10 @@ if (commander.url) {
     doc.fetchMeta()
         .then(() => {
             const selectedLayer = doc.layers[doc.layers.length - 1];
-            console.log(JSON.stringify(selectedLayer));
-            return doc.mosaics(selectedLayer);
+            // console.log(JSON.stringify(selectedLayer));
+            return doc.buildImage(selectedLayer);
         })
-        /*.then((streams) => {
-            doc.stitchTiles(doc.layers[doc.layers.length - 1], streams);
-        });*/
+        .then(() => {
+            console.log('Stitching completed!');
+        });
 }

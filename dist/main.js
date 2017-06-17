@@ -19,12 +19,10 @@ if (_commander2.default.url) {
     var doc = new _ArchiveDocument2.default(_commander2.default.url);
     doc.fetchMeta().then(function () {
         var selectedLayer = doc.layers[doc.layers.length - 1];
-        console.log(JSON.stringify(selectedLayer));
-        return doc.mosaics(selectedLayer);
-    }
-    /*.then((streams) => {
-        doc.stitchTiles(doc.layers[doc.layers.length - 1], streams);
-    });*/
-    );
+        // console.log(JSON.stringify(selectedLayer));
+        return doc.buildImage(selectedLayer);
+    }).then(function () {
+        console.log('Stitching completed!');
+    });
 }
 //# sourceMappingURL=main.js.map

@@ -14,15 +14,18 @@
     "rijksarchief-dl": "./dist/main.js"
   },
   "dependencies": {
-    "canvas": "^1.6.5",
+    "canvas": "v2.0.0-alpha.2",
     "commander": "^2.9.0",
     "file-base64": "^1.0.0",
+    "images": "^3.0.0",
     "jpg-stream": "^1.1.1",
     "libxmljs": "^0.18.4",
     "merge-images": "^1.0.4",
     "mosaic-image-stream": "^1.0.2",
     "node-fetch": "^1.7.1",
+    "opn": "^5.1.0",
     "png-stream": "^1.0.5",
+    "rimraf": "^2.6.1",
     "stream-to-array": "^2.3.0"
   },
   "devDependencies": {
@@ -37,7 +40,7 @@
   },
   "scripts": {
     "link-install": "npm link && npm install . --global",
-    "build": "babel src --out-dir dist --source-maps",
-    "dev": "babel src --out-dir dist --watch --source-maps"
+    "build": "babel src --out-dir dist --source-maps inline",
+    "dev": "babel src --out-dir dist --watch --source-maps inline"
   }
 }

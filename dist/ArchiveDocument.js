@@ -5,6 +5,9 @@ Object.defineProperty(exports, "__esModule", {
 });
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+// import rimraf from "rimraf";
+// import * as fs from 'fs';
+
 
 var _nodeFetch = require('node-fetch');
 
@@ -14,18 +17,6 @@ var _libxmljs = require('libxmljs');
 
 var _libxmljs2 = _interopRequireDefault(_libxmljs);
 
-var _decoder = require('jpg-stream/decoder');
-
-var _decoder2 = _interopRequireDefault(_decoder);
-
-var _encoder = require('jpg-stream/encoder');
-
-var _encoder2 = _interopRequireDefault(_encoder);
-
-var _mosaicImageStream = require('mosaic-image-stream');
-
-var _mosaicImageStream2 = _interopRequireDefault(_mosaicImageStream);
-
 var _mergeImages = require('merge-images');
 
 var _mergeImages2 = _interopRequireDefault(_mergeImages);
@@ -34,9 +25,9 @@ var _canvas = require('canvas');
 
 var _canvas2 = _interopRequireDefault(_canvas);
 
-var _fs = require('fs');
+var _opn = require('opn');
 
-var fs = _interopRequireWildcard(_fs);
+var _opn2 = _interopRequireDefault(_opn);
 
 var _path = require('path');
 
@@ -88,24 +79,45 @@ var ArchiveDocument = function () {
         key: 'buildImage',
         value: function () {
             var _ref = _asyncToGenerator(regeneratorRuntime.mark(function _callee(layer) {
-                var pos, tiles, row, col, url, response, buffer;
+                var pos, tiles, row, col, url, response, buffer, base;
                 return regeneratorRuntime.wrap(function _callee$(_context) {
                     while (1) {
                         switch (_context.prev = _context.next) {
                             case 0:
                                 pos = layer.starttile;
                                 tiles = [];
+
+                                /*
+                                const mkdirSync = function (dirPath) {
+                                    try {
+                                        fs.mkdirSync(dirPath)
+                                    } catch (err) {
+                                        if (err.code !== 'EEXIST') throw err
+                                    }
+                                };
+                                 const write = (row, col, buffer) => new Promise((resolve, reject) => {
+                                    const filename = path.join(__dirname, `./tiles/${row}-${col}.jpg`);
+                                    fs.writeFile(filename, buffer, "binary", function (err) {
+                                        if (err) reject(err);
+                                        else resolve({ filename });
+                                    });
+                                });
+                                 mkdirSync(path.join(__dirname, './tiles'));
+                                */
+
+                                console.log('Downloading ' + layer.cols * layer.rows + ' tiles...');
+
                                 row = 0;
 
-                            case 3:
-                                if (!(row < 2 /*layer.rows - 1*/)) {
+                            case 4:
+                                if (!(row < layer.rows - 1)) {
                                     _context.next = 22;
                                     break;
                                 }
 
                                 col = 0;
 
-                            case 5:
+                            case 6:
                                 if (!(col < layer.cols)) {
                                     _context.next = 19;
                                     break;
@@ -115,57 +127,67 @@ var ArchiveDocument = function () {
 
                                 // Fetch image
 
-                                _context.next = 9;
+                                _context.next = 10;
                                 return (0, _nodeFetch2.default)(url);
 
-                            case 9:
+                            case 10:
                                 response = _context.sent;
-                                _context.next = 12;
+                                _context.next = 13;
                                 return response.buffer();
 
-                            case 12:
+                            case 13:
                                 buffer = _context.sent;
 
 
-                                tiles.push({
-                                    x: row * this.tilewidth,
-                                    y: col * this.tileheight,
-                                    src: buffer
-                                });
+                                // Draw image
+                                //const { filename } = await write(row, col, buffer);
 
-                                fs.writeFile(path.join(__dirname, row + '-' + col + '-image.jpg'), buffer, "binary", function (err) {
-                                    console.log(err);
+                                tiles.push({
+                                    x: col * this.tileheight,
+                                    y: row * this.tilewidth,
+                                    src: buffer
+                                    // src: filename,
                                 });
 
                                 pos++;
 
                             case 16:
                                 col++;
-                                _context.next = 5;
+                                _context.next = 6;
                                 break;
 
                             case 19:
                                 row++;
-                                _context.next = 3;
+                                _context.next = 4;
                                 break;
 
                             case 22:
-                                _context.t0 = base64;
+
+                                // Build and save image
+                                console.log('Stitching together the final image...');
                                 _context.next = 25;
-                                return (0, _mergeImages2.default)(tiles, { Canvas: _canvas2.default });
+                                return (0, _mergeImages2.default)(tiles, {
+                                    Canvas: _canvas2.default,
+                                    format: this.mimetype,
+                                    width: layer.width,
+                                    height: layer.height
+                                });
 
                             case 25:
-                                _context.t1 = _context.sent;
-                                _context.t2 = path.join(__dirname, 'image.jpg');
+                                base = _context.sent;
 
-                                _context.t3 = function (err, output) {
-                                    console.log('success');
-                                    console.log(err, output);
-                                };
 
-                                _context.t0.decode.call(_context.t0, _context.t1, _context.t2, _context.t3);
+                                base64.decode(base.split('data:' + this.mimetype + ';base64')[1], path.join(__dirname, this.fif7 + '.jpg'), function (err, output) {
+                                    if (err) throw err;
+                                });
 
-                            case 29:
+                                // Remove tiles
+                                // rimraf(`${path.join(__dirname, 'tiles')}/**`);
+
+                                // Open final image
+                                (0, _opn2.default)(path.join(__dirname, this.fif7 + '.jpg'));
+
+                            case 28:
                             case 'end':
                                 return _context.stop();
                         }
@@ -180,130 +202,33 @@ var ArchiveDocument = function () {
             return buildImage;
         }()
     }, {
-        key: 'buildTileArrays',
+        key: 'fetchMeta',
         value: function () {
-            var _ref2 = _asyncToGenerator(regeneratorRuntime.mark(function _callee2(layer) {
-                var streams, pos, row, col, url, res, stream;
+            var _ref2 = _asyncToGenerator(regeneratorRuntime.mark(function _callee2() {
+                var result, body, xmlDoc;
                 return regeneratorRuntime.wrap(function _callee2$(_context2) {
                     while (1) {
                         switch (_context2.prev = _context2.next) {
                             case 0:
-                                streams = [];
-                                pos = layer.starttile;
-                                row = 0;
-
-                            case 3:
-                                if (!(row < 2 /*layer.rows - 1*/)) {
-                                    _context2.next = 20;
-                                    break;
-                                }
-
-                                streams[row] = [];
-
-                                col = 0;
-
-                            case 6:
-                                if (!(col < layer.cols)) {
-                                    _context2.next = 17;
-                                    break;
-                                }
-
-                                url = this.tileUrl(pos);
-                                _context2.next = 10;
-                                return (0, _nodeFetch2.default)(url);
-
-                            case 10:
-                                res = _context2.sent;
-                                stream = res.body.on('error', function (err) {
-                                    return console.error;
-                                }).pipe(new _decoder2.default());
-
-
-                                streams[row].push(stream);
-                                pos++;
-
-                            case 14:
-                                col++;
-                                _context2.next = 6;
-                                break;
-
-                            case 17:
-                                row++;
-                                _context2.next = 3;
-                                break;
-
-                            case 20:
-                                return _context2.abrupt('return', streams);
-
-                            case 21:
-                            case 'end':
-                                return _context2.stop();
-                        }
-                    }
-                }, _callee2, this);
-            }));
-
-            function buildTileArrays(_x2) {
-                return _ref2.apply(this, arguments);
-            }
-
-            return buildTileArrays;
-        }()
-    }, {
-        key: 'stitchTiles',
-        value: function stitchTiles(layer, streams) {
-            (0, _mosaicImageStream2.default)(streams, layer.rows * this.tileheight
-            /*.on('error', console.error)
-            .on('finish', () => console.log('hallo'))
-            .on('close', () => console.log('hallos'))*/
-            ).pipe(new _encoder2.default()).pipe(fs.createWriteStream(path.join(__dirname, 'testje.jpg')));
-            // console.log(`Written to ${path.join(__dirname, 'testje.jpg')}`);
-        }
-    }, {
-        key: 'mosaics',
-        value: function mosaics(layer) {
-            var _this = this;
-
-            var request = require('request');
-            var size = [layer.rows, layer.cols];
-            var factories = Array(size[0]).fill().map(function (v, i) {
-                var count = 0;
-                return function (cb) {
-                    var url = _this.tileUrl(layer.starttile + count * size[0] + i);
-                    // console.log(count+', '+i+', '+size[1]);
-                    console.log(url);
-                    if (++count > size[1]) return cb(null, null);
-                    cb(null, request(url).pipe(new _decoder2.default()));
-                };
-            });
-
-            (0, _mosaicImageStream2.default)(factories, size[1] * 150).on('error', console.error).pipe(new _encoder2.default()).pipe(fs.createWriteStream(path.join(__dirname, 'testjse.jpg')));
-        }
-    }, {
-        key: 'fetchMeta',
-        value: function () {
-            var _ref3 = _asyncToGenerator(regeneratorRuntime.mark(function _callee3() {
-                var result, body, xmlDoc;
-                return regeneratorRuntime.wrap(function _callee3$(_context3) {
-                    while (1) {
-                        switch (_context3.prev = _context3.next) {
-                            case 0:
-                                _context3.next = 2;
+                                _context2.next = 2;
                                 return (0, _nodeFetch2.default)(this.metaUrl);
 
                             case 2:
-                                result = _context3.sent;
-                                _context3.next = 5;
+                                result = _context2.sent;
+                                _context2.next = 5;
                                 return result.text();
 
                             case 5:
-                                body = _context3.sent;
+                                body = _context2.sent;
                                 xmlDoc = _libxmljs2.default.parseXml(body);
 
                                 // Extract tile dimensions
 
                                 this.tilewidth = parseInt(xmlDoc.get('//tjpinfo/tilewidth').text());
                                 this.tileheight = parseInt(xmlDoc.get('//tjpinfo/tileheight').text());
+
+                                // Extract mimetype
+                                this.mimetype = xmlDoc.get('//tjpinfo/mimetype').text();
 
                                 // Extract layers
                                 this.layers = xmlDoc.get('//layers').find('layer').map(function (layer) {
@@ -314,16 +239,16 @@ var ArchiveDocument = function () {
                                     return obj;
                                 });
 
-                            case 10:
+                            case 11:
                             case 'end':
-                                return _context3.stop();
+                                return _context2.stop();
                         }
                     }
-                }, _callee3, this);
+                }, _callee2, this);
             }));
 
             function fetchMeta() {
-                return _ref3.apply(this, arguments);
+                return _ref2.apply(this, arguments);
             }
 
             return fetchMeta;
