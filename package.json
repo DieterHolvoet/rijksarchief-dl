@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "commander": "^2.9.0",
+    "jpg-stream": "^1.1.1",
     "libxmljs": "^0.18.4",
     "mosaic-image-stream": "^1.0.2",
     "node-fetch": "^1.7.1"
@@ -31,7 +32,7 @@
   },
   "scripts": {
     "link-install": "npm link && npm install . --global",
-    "build": "babel src --out-dir dist",
-    "dev": "babel src --out-dir dist --watch"
+    "build": "babel src --out-dir dist --source-maps",
+    "dev": "babel src --out-dir dist --watch --source-maps"
   }
 }
