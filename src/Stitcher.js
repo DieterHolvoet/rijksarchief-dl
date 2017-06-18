@@ -18,21 +18,21 @@ class Stitcher {
         })
     }
 
-    static writeTile(row, col, buffer) {
-        return Stitcher.writeFile(buffer, path.join(__dirname, `./tiles/${row}-${col}.jpg`));
+    static writeTile(row, col, buffer, output) {
+        return Stitcher.writeFile(buffer, path.join(output, `./tiles/${row}-${col}.jpg`));
     }
 
-    static createTileDirectory() {
-        try { fs.mkdirSync(path.join(__dirname, './tiles')) } catch (err) {
+    static createTileDirectory(output) {
+        try { fs.mkdirSync(path.join(output, './tiles')) } catch (err) {
             if (err.code !== 'EEXIST') throw err
         }
     }
 
-    static async buildImage(doc, saveTiles = false) {
+    static async buildImage(doc, outputFolder, saveTiles = false) {
         let pos = doc.starttile;
-        const output = path.join(__dirname, `${doc.fif(7)}@${doc.scalefactor}.jpg`);
         const totalTiles = doc.cols * doc.rows;
         const tiles = [];
+        const outputFile = path.join(outputFolder, `${doc.fif(7)}@${doc.scalefactor}.jpg`);
 
         // Single image
         if (doc.rows === 1 && doc.cols === 1) {
@@ -40,13 +40,13 @@ class Stitcher {
             const { buffer } = await Fetcher.getTile(doc, pos);
 
             Log.step('Saving image...');
-            await Stitcher.writeFile(buffer, output);
+            await Stitcher.writeFile(buffer, outputFile);
 
             return output;
         }
 
         if (saveTiles) {
-            Stitcher.createTileDirectory();
+            Stitcher.createTileDirectory(outputFolder);
         }
 
         Log.step(`Downloading ${totalTiles} tiles...`);
@@ -64,7 +64,7 @@ class Stitcher {
                 const { buffer } = await Fetcher.getTile(doc, pos);
 
                 if (saveTiles) {
-                    await Stitcher.writeTile(row, col, buffer);
+                    await Stitcher.writeTile(row, col, buffer, outputFolder);
                 }
 
                 tiles.push({
@@ -91,11 +91,11 @@ class Stitcher {
         // Save result
         const bitmap = Buffer.from(base.split(`data:${doc.mimeType};base64`)[1], 'base64');
         const rs = intoStream.default(bitmap);
-        const ws = fs.createWriteStream(output);
+        const ws = fs.createWriteStream(outputFile);
         rs.pipe(ws);
         await streamToPromise(ws);
 
-        return output;
+        return outputFile;
     }
 }
 
