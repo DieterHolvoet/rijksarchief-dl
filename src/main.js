@@ -10,20 +10,20 @@ import Log from "./Log";
 commander
     .version('1.0')
     .option('-u, --url [url]', 'the url of the resource (required)')
+    .option('-s, --scale-factor [scale]', 'the size of the output image (options: 1,2,4,8,16,32) [default: 1]', 32)
     .option('-t, --save-tiles [sav]', 'save the separate tiles (default: false)', false)
     .option('-o, --open-image [open]', 'open the image after saving (default: true)', true)
     .parse(process.argv);
 
-const { url, saveTiles, openImage } = commander;
+const { url, scaleFactor, saveTiles, openImage } = commander;
 
 if (!url) {
     commander.help();
 }
 
-ArchiveDocument.withUrl(url)
+ArchiveDocument.create(url, scaleFactor)
     .then((doc) => {
-        const layer = doc.layers[doc.layers.length - 1];
-        return Stitcher.buildImage(doc, layer, saveTiles);
+        return Stitcher.buildImage(doc, saveTiles);
     })
     .then((output) => {
         Log.success('Stitching complete!');

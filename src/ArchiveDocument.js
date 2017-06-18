@@ -2,11 +2,11 @@ import Fetcher from "./Fetcher";
 import Log from "./Log";
 
 class ArchiveDocument {
-    static async withUrl(url) {
+    static async create(url, scaleFactor) {
         Log.step('Fetching info about image...');
         const instance = new this;
         instance.fifs = ArchiveDocument.parseUrl(url);
-        Object.assign(instance, await Fetcher.getMeta(instance));
+        Object.assign(instance, await Fetcher.getMeta(instance, scaleFactor));
         return instance;
     }
 

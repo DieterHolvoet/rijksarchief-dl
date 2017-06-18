@@ -1,14 +1,16 @@
 import libxmljs from 'libxmljs';
 import fetch from 'node-fetch';
+import Log from "./Log";
 
 class Fetcher {
 
     /**
      * Fetch information about an ArchiveDocument
      * @param doc
+     * @param scaleFactor
      * @return {Promise.<{tileWidth: Number, tileHeight: Number, mimeType, layers: (*|Array)}>}
      */
-    static async getMeta(doc) {
+    static async getMeta(doc, scaleFactor) {
         const url = Fetcher.getMetaUrl(doc);
         const response = await fetch(url);
         const body = await response.text();
@@ -20,19 +22,23 @@ class Fetcher {
             throw new Error(`Document with id ${doc.fif(7)} does not exist!`);
         }
 
-        return {
+        const data = {
             tileWidth: parseInt(xmlDoc.get('//tjpinfo/tilewidth').text()),
             tileHeight: parseInt(xmlDoc.get('//tjpinfo/tileheight').text()),
-            mimeType: xmlDoc.get('//tjpinfo/mimetype').text(),
-            layers: xmlDoc.get('//layers').find('layer')
-                .map((layer) => {
-                    const obj = {};
-                    ['no', 'starttile', 'cols', 'rows', 'scalefactor', 'width', 'height'].forEach((attr) => {
-                        obj[attr] = parseInt(layer.attr(attr).value());
-                    });
-                    return obj;
-                })
+            mimeType: xmlDoc.get('//tjpinfo/mimetype').text()
         };
+
+        const layer = xmlDoc.get(`//layer[@scalefactor='${scaleFactor}']`);
+
+        if (!layer) {
+            throw new Error(`Scale factor ${scaleFactor} does not exist for this image.`);
+        }
+
+        ['no', 'starttile', 'cols', 'rows', 'scalefactor', 'width', 'height'].forEach((attr) => {
+            data[attr] = parseInt(layer.attr(attr).value());
+        });
+
+        return data;
     }
 
     /**
