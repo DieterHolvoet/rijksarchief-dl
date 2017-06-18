@@ -1,9 +1,12 @@
-import mergeImages from 'merge-images';
 import Canvas from 'canvas';
+import mergeImages from 'merge-images';
+import ProgressBar from 'ascii-progress';
+import streamToPromise from 'stream-to-promise';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as base64 from 'file-base64';
+import * as intoStream from 'into-stream';
 import Fetcher from "./Fetcher";
+import Log from "./Log";
 
 class Stitcher {
     static writeTile(row, col, buffer) {
@@ -25,13 +28,20 @@ class Stitcher {
     static async buildImage(doc, layer, saveTiles = false) {
         let pos = layer.starttile;
         const output = path.join(__dirname, `${doc.fif(7)}.jpg`);
+        const totalTiles = layer.cols * (layer.rows - 1);
         const tiles = [];
 
         if (saveTiles) {
             Stitcher.createTileDirectory();
         }
 
-        console.log(`Downloading ${layer.cols * layer.rows} tiles...`);
+        Log.step(`Downloading ${totalTiles} tiles...`);
+        const progressBar = new ProgressBar({
+            schema: '      :bar :current/:total',
+            filled: '█',
+            total : totalTiles,
+            clear: true,
+        });
 
         // Fetch tiles
         for (let row = 0; row < layer.rows - 1; row++) {
@@ -49,11 +59,12 @@ class Stitcher {
                 });
 
                 pos++;
+                progressBar.tick();
             }
         }
 
         // Stitch together tiles
-        console.log('Stitching together the final image...');
+        Log.step('Stitching together the final image...');
         const base = await mergeImages(tiles, {
             Canvas,
             format: doc.mimeType,
@@ -62,13 +73,11 @@ class Stitcher {
         });
 
         // Save result
-        base64.decode(
-            base.split(`data:${doc.mimeType};base64`)[1],
-            output,
-            (err) => {
-                if (err) throw err;
-            }
-        );
+        const bitmap = Buffer.from(base.split(`data:${doc.mimeType};base64`)[1], 'base64');
+        const rs = intoStream.default(bitmap);
+        const ws = fs.createWriteStream(output);
+        rs.pipe(ws);
+        await streamToPromise(ws);
 
         return output;
     }

@@ -2,8 +2,10 @@
 import 'babel-polyfill';
 import commander from 'commander';
 import opn from 'opn';
+import chalk from 'chalk'
 import ArchiveDocument from "./ArchiveDocument";
 import Stitcher from "./Stitcher";
+import Log from "./Log";
 
 commander
     .version('1.0')
@@ -24,10 +26,11 @@ ArchiveDocument.withUrl(url)
         return Stitcher.buildImage(doc, layer, saveTiles);
     })
     .then((output) => {
-        console.log('Stitching complete!');
+        Log.success('Stitching complete!');
+        Log.success(`Image was saved at ${chalk.blue(output)}${openImage ? ' and will be opened any moment.' : ''}`);
         if (openImage) {
             opn(output);
         }
         return Promise.resolve();
     })
-    .catch(error => console.error(error.message));
+    .catch(error => Log.error(error.message));
