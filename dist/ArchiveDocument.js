@@ -1,274 +1,86 @@
-'use strict';
+"use strict";
 
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-// import rimraf from "rimraf";
-// import * as fs from 'fs';
 
+var _Fetcher = require("./Fetcher");
 
-var _nodeFetch = require('node-fetch');
-
-var _nodeFetch2 = _interopRequireDefault(_nodeFetch);
-
-var _libxmljs = require('libxmljs');
-
-var _libxmljs2 = _interopRequireDefault(_libxmljs);
-
-var _mergeImages = require('merge-images');
-
-var _mergeImages2 = _interopRequireDefault(_mergeImages);
-
-var _canvas = require('canvas');
-
-var _canvas2 = _interopRequireDefault(_canvas);
-
-var _opn = require('opn');
-
-var _opn2 = _interopRequireDefault(_opn);
-
-var _path = require('path');
-
-var path = _interopRequireWildcard(_path);
-
-var _fileBase = require('file-base64');
-
-var base64 = _interopRequireWildcard(_fileBase);
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+var _Fetcher2 = _interopRequireDefault(_Fetcher);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var ArchiveDocument = function () {
-    function ArchiveDocument(url) {
+    function ArchiveDocument() {
         _classCallCheck(this, ArchiveDocument);
-
-        var result = ArchiveDocument.extractFifs(url);
-        this.fif7 = result[1];
-        this.fif5 = result[2];
-        this.fif3 = result[3];
-        this.fif1 = result[4];
     }
 
-    /**
-     * Extract the required parts from the URL
-     * @param val
-     * @example http://search.arch.be/imageserver/getpic.php?510/510_1546_000/510_1546_000_01852_000/510_1546_000_01852_000_0_0001.jp2&249
-     */
-
-
     _createClass(ArchiveDocument, [{
-        key: 'tileUrl',
-
-
-        /**
-         * Build a tile url based on an object with the separate values
-         * @param tile
-         * @return {string}
-         */
-        value: function tileUrl(tile) {
-            return 'http://search.arch.be/imageserver/getpic.php?' + this.fif1 + '/' + this.fif3 + '/' + this.fif5 + '/' + this.fif7 + '.jp2&' + tile;
+        key: "fif",
+        value: function fif(num) {
+            var fifs = [].concat(_toConsumableArray(this.fifs));
+            fifs.length -= fifs.length - num;
+            return fifs.join('_');
         }
-    }, {
-        key: 'buildImage',
+    }], [{
+        key: "withUrl",
         value: function () {
-            var _ref = _asyncToGenerator(regeneratorRuntime.mark(function _callee(layer) {
-                var pos, tiles, row, col, url, response, buffer, base;
+            var _ref = _asyncToGenerator(regeneratorRuntime.mark(function _callee(url) {
+                var instance;
                 return regeneratorRuntime.wrap(function _callee$(_context) {
                     while (1) {
                         switch (_context.prev = _context.next) {
                             case 0:
-                                pos = layer.starttile;
-                                tiles = [];
+                                instance = new this();
 
-                                /*
-                                const mkdirSync = function (dirPath) {
-                                    try {
-                                        fs.mkdirSync(dirPath)
-                                    } catch (err) {
-                                        if (err.code !== 'EEXIST') throw err
-                                    }
-                                };
-                                 const write = (row, col, buffer) => new Promise((resolve, reject) => {
-                                    const filename = path.join(__dirname, `./tiles/${row}-${col}.jpg`);
-                                    fs.writeFile(filename, buffer, "binary", function (err) {
-                                        if (err) reject(err);
-                                        else resolve({ filename });
-                                    });
-                                });
-                                 mkdirSync(path.join(__dirname, './tiles'));
-                                */
-
-                                console.log('Downloading ' + layer.cols * layer.rows + ' tiles...');
-
-                                row = 0;
-
-                            case 4:
-                                if (!(row < layer.rows - 1)) {
-                                    _context.next = 22;
-                                    break;
-                                }
-
-                                col = 0;
+                                instance.fifs = ArchiveDocument.parseUrl(url);
+                                _context.t0 = Object;
+                                _context.t1 = instance;
+                                _context.next = 6;
+                                return _Fetcher2.default.getMeta(instance);
 
                             case 6:
-                                if (!(col < layer.cols)) {
-                                    _context.next = 19;
-                                    break;
-                                }
+                                _context.t2 = _context.sent;
 
-                                url = this.tileUrl(pos);
+                                _context.t0.assign.call(_context.t0, _context.t1, _context.t2);
 
-                                // Fetch image
+                                return _context.abrupt("return", instance);
 
-                                _context.next = 10;
-                                return (0, _nodeFetch2.default)(url);
-
-                            case 10:
-                                response = _context.sent;
-                                _context.next = 13;
-                                return response.buffer();
-
-                            case 13:
-                                buffer = _context.sent;
-
-
-                                // Draw image
-                                //const { filename } = await write(row, col, buffer);
-
-                                tiles.push({
-                                    x: col * this.tileheight,
-                                    y: row * this.tilewidth,
-                                    src: buffer
-                                    // src: filename,
-                                });
-
-                                pos++;
-
-                            case 16:
-                                col++;
-                                _context.next = 6;
-                                break;
-
-                            case 19:
-                                row++;
-                                _context.next = 4;
-                                break;
-
-                            case 22:
-
-                                // Build and save image
-                                console.log('Stitching together the final image...');
-                                _context.next = 25;
-                                return (0, _mergeImages2.default)(tiles, {
-                                    Canvas: _canvas2.default,
-                                    format: this.mimetype,
-                                    width: layer.width,
-                                    height: layer.height
-                                });
-
-                            case 25:
-                                base = _context.sent;
-
-
-                                base64.decode(base.split('data:' + this.mimetype + ';base64')[1], path.join(__dirname, this.fif7 + '.jpg'), function (err, output) {
-                                    if (err) throw err;
-                                });
-
-                                // Remove tiles
-                                // rimraf(`${path.join(__dirname, 'tiles')}/**`);
-
-                                // Open final image
-                                (0, _opn2.default)(path.join(__dirname, this.fif7 + '.jpg'));
-
-                            case 28:
-                            case 'end':
+                            case 9:
+                            case "end":
                                 return _context.stop();
                         }
                     }
                 }, _callee, this);
             }));
 
-            function buildImage(_x) {
+            function withUrl(_x) {
                 return _ref.apply(this, arguments);
             }
 
-            return buildImage;
+            return withUrl;
         }()
-    }, {
-        key: 'fetchMeta',
-        value: function () {
-            var _ref2 = _asyncToGenerator(regeneratorRuntime.mark(function _callee2() {
-                var result, body, xmlDoc;
-                return regeneratorRuntime.wrap(function _callee2$(_context2) {
-                    while (1) {
-                        switch (_context2.prev = _context2.next) {
-                            case 0:
-                                _context2.next = 2;
-                                return (0, _nodeFetch2.default)(this.metaUrl);
-
-                            case 2:
-                                result = _context2.sent;
-                                _context2.next = 5;
-                                return result.text();
-
-                            case 5:
-                                body = _context2.sent;
-                                xmlDoc = _libxmljs2.default.parseXml(body);
-
-                                // Extract tile dimensions
-
-                                this.tilewidth = parseInt(xmlDoc.get('//tjpinfo/tilewidth').text());
-                                this.tileheight = parseInt(xmlDoc.get('//tjpinfo/tileheight').text());
-
-                                // Extract mimetype
-                                this.mimetype = xmlDoc.get('//tjpinfo/mimetype').text();
-
-                                // Extract layers
-                                this.layers = xmlDoc.get('//layers').find('layer').map(function (layer) {
-                                    var obj = {};
-                                    ['no', 'starttile', 'cols', 'rows', 'scalefactor', 'width', 'height'].forEach(function (attr) {
-                                        obj[attr] = parseInt(layer.attr(attr).value());
-                                    });
-                                    return obj;
-                                });
-
-                            case 11:
-                            case 'end':
-                                return _context2.stop();
-                        }
-                    }
-                }, _callee2, this);
-            }));
-
-            function fetchMeta() {
-                return _ref2.apply(this, arguments);
-            }
-
-            return fetchMeta;
-        }()
-    }, {
-        key: 'metaUrl',
-
 
         /**
-         * Build a meta url based on an object with the separate values
-         * @return {string}
+         * Extract the required parts from the URL
+         * @param val
+         * @example http://search.arch.be/imageserver/getpic.php?510/510_1546_000/510_1546_000_01852_000/510_1546_000_01852_000_0_0001.jp2&249
          */
-        get: function get() {
-            return 'http://search.arch.be/imageserver/topview.xml.php?FIF=' + this.fif1 + '/' + this.fif3 + '/' + this.fif5 + '/' + this.fif7 + '.jp2';
-        }
-    }], [{
-        key: 'extractFifs',
-        value: function extractFifs(val) {
-            return (/(((([0-9]{3})_[0-9]{4}_[0-9]{3})_[0-9]{5}_[0-9]{3})_[0-9]{1}_[0-9]{4})/.exec(val)
-            );
+
+    }, {
+        key: "parseUrl",
+        value: function parseUrl(val) {
+            var result = Array.from(/([0-9]{3})_([0-9]{4})_([0-9]{3})_([0-9]{5})_([0-9]{3})_([0-9]{1})_([0-9]{4})/.exec(val));
+            result.shift();
+            return result;
         }
     }]);
 
@@ -276,4 +88,4 @@ var ArchiveDocument = function () {
 }();
 
 exports.default = ArchiveDocument;
-//# sourceMappingURL=ArchiveDocument.js.map
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIi4uL3NyYy9BcmNoaXZlRG9jdW1lbnQuanMiXSwibmFtZXMiOlsiQXJjaGl2ZURvY3VtZW50IiwibnVtIiwiZmlmcyIsImxlbmd0aCIsImpvaW4iLCJ1cmwiLCJpbnN0YW5jZSIsInBhcnNlVXJsIiwiT2JqZWN0IiwiZ2V0TWV0YSIsImFzc2lnbiIsInZhbCIsInJlc3VsdCIsIkFycmF5IiwiZnJvbSIsImV4ZWMiLCJzaGlmdCJdLCJtYXBwaW5ncyI6Ijs7Ozs7Ozs7QUFBQTs7Ozs7Ozs7Ozs7O0lBRU1BLGU7Ozs7Ozs7NEJBbUJFQyxHLEVBQUs7QUFDTCxnQkFBTUMsb0NBQVcsS0FBS0EsSUFBaEIsRUFBTjtBQUNBQSxpQkFBS0MsTUFBTCxJQUFnQkQsS0FBS0MsTUFBTCxHQUFjRixHQUE5QjtBQUNBLG1CQUFPQyxLQUFLRSxJQUFMLENBQVUsR0FBVixDQUFQO0FBQ0g7Ozs7a0ZBdEJvQkMsRzs7Ozs7O0FBQ1hDLHdDLEdBQVcsSUFBSSxJQUFKLEU7O0FBQ2pCQSx5Q0FBU0osSUFBVCxHQUFnQkYsZ0JBQWdCTyxRQUFoQixDQUF5QkYsR0FBekIsQ0FBaEI7OENBQ0FHLE07OENBQWNGLFE7O3VDQUFnQixrQkFBUUcsT0FBUixDQUFnQkgsUUFBaEIsQzs7Ozs7NENBQXZCSSxNOztpRUFDQUosUTs7Ozs7Ozs7Ozs7Ozs7Ozs7QUFHWDs7Ozs7Ozs7aUNBS2dCSyxHLEVBQUs7QUFDakIsZ0JBQU1DLFNBQVNDLE1BQU1DLElBQU4sQ0FBVywrRUFBK0VDLElBQS9FLENBQW9GSixHQUFwRixDQUFYLENBQWY7QUFDQUMsbUJBQU9JLEtBQVA7QUFDQSxtQkFBT0osTUFBUDtBQUNIOzs7Ozs7a0JBU1VaLGUiLCJmaWxlIjoiQXJjaGl2ZURvY3VtZW50LmpzIiwic291cmNlc0NvbnRlbnQiOlsiaW1wb3J0IEZldGNoZXIgZnJvbSBcIi4vRmV0Y2hlclwiO1xuXG5jbGFzcyBBcmNoaXZlRG9jdW1lbnQge1xuICAgIHN0YXRpYyBhc3luYyB3aXRoVXJsKHVybCkge1xuICAgICAgICBjb25zdCBpbnN0YW5jZSA9IG5ldyB0aGlzO1xuICAgICAgICBpbnN0YW5jZS5maWZzID0gQXJjaGl2ZURvY3VtZW50LnBhcnNlVXJsKHVybCk7XG4gICAgICAgIE9iamVjdC5hc3NpZ24oaW5zdGFuY2UsIGF3YWl0IEZldGNoZXIuZ2V0TWV0YShpbnN0YW5jZSkpO1xuICAgICAgICByZXR1cm4gaW5zdGFuY2U7XG4gICAgfVxuXG4gICAgLyoqXG4gICAgICogRXh0cmFjdCB0aGUgcmVxdWlyZWQgcGFydHMgZnJvbSB0aGUgVVJMXG4gICAgICogQHBhcmFtIHZhbFxuICAgICAqIEBleGFtcGxlIGh0dHA6Ly9zZWFyY2guYXJjaC5iZS9pbWFnZXNlcnZlci9nZXRwaWMucGhwPzUxMC81MTBfMTU0Nl8wMDAvNTEwXzE1NDZfMDAwXzAxODUyXzAwMC81MTBfMTU0Nl8wMDBfMDE4NTJfMDAwXzBfMDAwMS5qcDImMjQ5XG4gICAgICovXG4gICAgc3RhdGljIHBhcnNlVXJsKHZhbCkge1xuICAgICAgICBjb25zdCByZXN1bHQgPSBBcnJheS5mcm9tKC8oWzAtOV17M30pXyhbMC05XXs0fSlfKFswLTldezN9KV8oWzAtOV17NX0pXyhbMC05XXszfSlfKFswLTldezF9KV8oWzAtOV17NH0pLy5leGVjKHZhbCkpO1xuICAgICAgICByZXN1bHQuc2hpZnQoKTtcbiAgICAgICAgcmV0dXJuIHJlc3VsdDtcbiAgICB9XG5cbiAgICBmaWYobnVtKSB7XG4gICAgICAgIGNvbnN0IGZpZnMgPSBbLi4udGhpcy5maWZzXTtcbiAgICAgICAgZmlmcy5sZW5ndGggLT0gKGZpZnMubGVuZ3RoIC0gbnVtKTtcbiAgICAgICAgcmV0dXJuIGZpZnMuam9pbignXycpO1xuICAgIH1cbn1cblxuZXhwb3J0IGRlZmF1bHQgQXJjaGl2ZURvY3VtZW50O1xuIl19

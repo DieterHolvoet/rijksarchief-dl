@@ -14,7 +14,7 @@ class Fetcher {
         const body = await response.text();
         const xmlDoc = libxmljs.parseXml(body);
         if (false) {
-            throw new Error(`Document with ID ${this.fif(7)} does not exist!`)
+            throw new Error(`Document with ID ${doc.fif(7)} does not exist!`)
         }
         return {
             tileWidth: parseInt(xmlDoc.get('//tjpinfo/tilewidth').text()),
@@ -34,6 +34,7 @@ class Fetcher {
     /**
      * Build a meta url based on an ArchiveDocument
      * @return {string}
+     * @example http://search.arch.be/imageserver/topview.xml.php?FIF=510/510_1546_000/510_1546_000_01852_000/510_1546_000_01852_000_0_0001.jp2
      */
     static getMetaUrl(doc) {
         const fif = `${doc.fif(1)}/${doc.fif(3)}/${doc.fif(5)}/${doc.fif(7)}`;

@@ -1,6 +1,7 @@
 import mergeImages from 'merge-images';
 import Canvas from 'canvas';
 import * as fs from 'fs';
+import * as path from 'path';
 import * as base64 from 'file-base64';
 import Fetcher from "./Fetcher";
 
@@ -35,7 +36,7 @@ class Stitcher {
         // Fetch tiles
         for (let row = 0; row < layer.rows - 1; row++) {
             for (let col = 0; col < layer.cols; col++) {
-                const { buffer } = Fetcher.getTile(doc);
+                const { buffer } = await Fetcher.getTile(doc, pos);
 
                 if (saveTiles) {
                     await Stitcher.writeTile(row, col, buffer);

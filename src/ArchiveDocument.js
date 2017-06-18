@@ -2,8 +2,10 @@ import Fetcher from "./Fetcher";
 
 class ArchiveDocument {
     static async withUrl(url) {
-        this.fifs = ArchiveDocument.parseUrl(url);
-        Object.assign(this, await Fetcher.getMeta(url));
+        const instance = new this;
+        instance.fifs = ArchiveDocument.parseUrl(url);
+        Object.assign(instance, await Fetcher.getMeta(instance));
+        return instance;
     }
 
     /**
@@ -20,7 +22,7 @@ class ArchiveDocument {
     fif(num) {
         const fifs = [...this.fifs];
         fifs.length -= (fifs.length - num);
-        return fifs;
+        return fifs.join('_');
     }
 }
 

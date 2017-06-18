@@ -7,22 +7,27 @@ import Stitcher from "./Stitcher";
 
 commander
     .version('1.0')
-    .option('-u, --url [url]', 'The url of the resource')
+    .option('-u, --url [url]', 'the url of the resource (required)')
+    .option('-t, --save-tiles [sav]', 'save the separate tiles (default: false)', false)
+    .option('-o, --open-image [open]', 'open the image after saving (default: true)', true)
     .parse(process.argv);
 
-if (!commander.url) {
+const { url, saveTiles, openImage } = commander;
+
+if (!url) {
     commander.help();
 }
 
-ArchiveDocument.withUrl(commander.url)
+ArchiveDocument.withUrl(url)
     .then((doc) => {
         const layer = doc.layers[doc.layers.length - 1];
-        return Stitcher.buildImage(doc, layer, false);
+        return Stitcher.buildImage(doc, layer, saveTiles);
     })
     .then((output) => {
         console.log('Stitching complete!');
-
-        // Open final image
-        opn(output);
+        if (openImage) {
+            opn(output);
+        }
+        return Promise.resolve();
     })
-    .error(error => console.error(error.message));
+    .catch(error => console.error(error.message));
