@@ -42,7 +42,7 @@ class Stitcher {
             Log.step('Saving image...');
             await Stitcher.writeFile(buffer, outputFile);
 
-            return output;
+            return outputFile;
         }
 
         if (saveTiles) {

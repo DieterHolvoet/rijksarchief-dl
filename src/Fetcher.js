@@ -43,12 +43,13 @@ class Fetcher {
 
     /**
      * Build a meta url based on an ArchiveDocument
+     * @param doc
      * @return {string}
      * @example http://search.arch.be/imageserver/topview.xml.php?FIF=510/510_1546_000/510_1546_000_01852_000/510_1546_000_01852_000_0_0001.jp2
      */
     static getMetaUrl(doc) {
         const fif = `${doc.fif(1)}/${doc.fif(3)}/${doc.fif(5)}/${doc.fif(7)}`;
-        return `http://search.arch.be/imageserver/topview.xml.php?FIF=${fif}.jp2`;
+        return `http://search.arch.be/imageserver/topview.xml.php?FIF=${fif}.${doc.extension}`;
     }
 
     /**
@@ -82,7 +83,7 @@ class Fetcher {
      */
     static getTileUrl(doc, tile) {
         const fif = `${doc.fif(1)}/${doc.fif(3)}/${doc.fif(5)}/${doc.fif(7)}`;
-        return `http://search.arch.be/imageserver/getpic.php?${fif}.jp2&${tile}`;
+        return `http://search.arch.be/imageserver/getpic.php?${fif}.${doc.extension}&${tile}`;
     }
 }
 
