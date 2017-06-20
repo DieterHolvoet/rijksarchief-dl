@@ -9,11 +9,11 @@ import Log from "./Log";
 
 commander
     .version('1.0')
-    .option('-u, --url [url]', 'the url of the resource (required)')
-    .option('-s, --scale-factor [scale]', 'the size of the output image (options: 1,2,4,8,16,32) [default: 1]', 1)
-    .option('-d, --out-dir [open]', 'the folder in which the image will be saved (default: working directory)', process.cwd())
-    .option('-t, --save-tiles [sav]', 'save the separate tiles (default: false)', false)
-    .option('-o, --open-image [open]', 'open the image after saving (default: true)', true)
+    .option('-u, --url [url]', 'the url of the image (required)')
+    .option('-s, --scale-factor [scale]', 'the scale factor of the image: determines the resolution, the bigger the scale factor, the smaller the image (options: 1,2,4,8,16,32) [optional, default: 1]', 1)
+    .option('-d, --out-dir [open]', 'the folder in which the image will be saved (optional, default: working directory)', process.cwd())
+    .option('-t, --save-tiles [sav]', 'save the separate tiles (optional, default: false)', false)
+    .option('-o, --open-image [open]', 'open the image when finished (optional, default: true)', true)
     .parse(process.argv);
 
 const { url, scaleFactor, saveTiles, openImage, outDir } = commander;
